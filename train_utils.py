@@ -32,14 +32,14 @@ def get_config_dir(args):
 def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics):
     set_seed(run)
 
-    model = T5ForConditionalGeneration.from_pretrained(args.from_pretrained)
+    model = T5ForConditionalGeneration.from_pretrained(args.model_path)
 
     if args.parallelize:
         model.parallelize()
     
-    config_dir = get_config_dir(args)
-    output_dir = f'ckpts/{config_dir}/{run}'  # for model ckpts
-    logging_dir = f'logs/{config_dir}/{run}'  # for training logs
+    # config_dir = get_config_dir(args)
+    # output_dir = f'ckpts/{config_dir}/{run}'  # for model ckpts
+    # logging_dir = f'logs/{config_dir}/{run}'  # for training logs
 
     if args.no_log:
         logging_strategy = 'no'

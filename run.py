@@ -26,7 +26,7 @@ from datasets import Dataset
 
 def run(args):
     #### Prepare datasets Prepare data for training
-    tokenizer = AutoTokenizer.from_pretrained(args.from_pretrained)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 
 
     if args.model_type == 'task_prefix' and args.llm is not None:
@@ -104,6 +104,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_rationale', action='store_true')
     parser.add_argument('--type_rationale', type=str, default='if_else')
     parser.add_argument('--data_size', type=int, default=1)
+    parser.add_argument('--model_path', type=str, default="/kaggle/input/deepseek-math")
 
     args = parser.parse_args()
 
