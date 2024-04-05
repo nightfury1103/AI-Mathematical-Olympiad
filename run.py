@@ -27,6 +27,8 @@ from datasets import Dataset
 def run(args):
     #### Prepare datasets Prepare data for training
     tokenizer = AutoTokenizer.from_pretrained(args.model_path)
+    if tokenizer.pad_token is None:
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
 
     if args.model_type == 'task_prefix' and args.llm is not None:
