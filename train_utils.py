@@ -37,9 +37,9 @@ def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics
     if args.parallelize:
         model.parallelize()
     
-    # config_dir = get_config_dir(args)
-    # output_dir = f'ckpts/{config_dir}/{run}'  # for model ckpts
-    # logging_dir = f'logs/{config_dir}/{run}'  # for training logs
+    config_dir = get_config_dir(args)
+    output_dir = f'ckpts/{config_dir}/{run}'  # for model ckpts
+    logging_dir = f'logs/{config_dir}/{run}'  # for training logs
 
     if args.no_log:
         logging_strategy = 'no'
