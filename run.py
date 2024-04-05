@@ -22,7 +22,7 @@ from data_utils import CQADatasetLoader, SVAMPDatasetLoader, ESNLIDatasetLoader,
 from metrics import compute_text_acc, compute_equation_acc, compute_metrics_text, compute_metrics_equation, compute_metrics_text_aux, compute_metrics_equation_aux
 from train_utils import train_and_evaluate
 import pandas as pd
-
+from datasets import Dataset 
 
 def run(args):
     #### Prepare datasets Prepare data for training
@@ -37,23 +37,29 @@ def run(args):
             model_inputs['expl_attention_mask'] = expl_model_inputs['attention_mask']
 
             with tokenizer.as_target_tokenizer():
-                label_output_encodings = tokenizer(examples['expected_answer'], max_length=256, truncation=True)
-                rationale_output_encodings = tokenizer(examples['generated_solution'], max_length=256, truncation=True)
+                label_output_encodings = tokenizer(examples['result'], max_length=256, truncation=True)
+                rationale_output_encodings = tokenizer(examples['answer'], max_length=256, truncation=True)
 
             model_inputs['labels'] = label_output_encodings['input_ids']
             model_inputs['aux_labels'] = rationale_output_encodings['input_ids']
 
             return model_inputs
 
+    train = pd.read_csv("gsm8k.csv", )
+    # split the data into train and valid
+    train = train.sample(frac=1)
+    train = train.reset_index(drop=True)
+    train = train[:int(0.8*len(train))]
+    valid = train[int(0.8*len(train)):]
     
-    datasets = load_dataset("nvidia/OpenMathInstruct-1")
-            
-    # split the dataset into training and validation
-    datasets = datasets['train'].train_test_split(test_size=0.2)
+    datasets = DatasetDict({
+        'train': Dataset.from_pandas(train),
+        'valid': Dataset.from_pandas(valid),
+    })
 
     tokenized_datasets = datasets.map(
         tokenize_function,
-        remove_columns=['question', 'expected_answer', 'predicted_answer', 'error_message', 'is_correct', 'generation_type', 'dataset', 'generated_solution'],
+        remove_columns=['question', 'answer', 'result'],
         batched=True
     )
 
@@ -75,7 +81,7 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, required=True)
+    parser.add_argument('--dataset', type=str, required=False)
     parser.add_argument('--subsample', type=float, default=1.0)
     parser.add_argument('--alpha', type=float, default=0.5)
     parser.add_argument('--max_steps', type=int, default=10000)
