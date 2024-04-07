@@ -16,10 +16,9 @@
 import os
 import shutil
 import logging
-import torch 
-
+import torch
 from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
-from transformers import T5ForConditionalGeneration, BitsAndBytesConfig
+from transformers import T5ForConditionalGeneration
 from transformers import DataCollatorForSeq2Seq
 from transformers.trainer_utils import set_seed
 
@@ -31,19 +30,12 @@ def get_config_dir(args):
 
 
 def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics):
+    if args.local_rank != -1:
+        torch.distributed.init_process_group(backend="nccl")
+
     set_seed(run)
 
-    bnb_config = BitsAndBytesConfig(  
-        load_in_4bit= True,
-        bnb_4bit_quant_type= "nf4",
-        bnb_4bit_compute_dtype= torch.bfloat16,
-        bnb_4bit_use_double_quant= False,
-    )
-
-    model = T5ForConditionalGeneration.from_pretrained(args.from_pretrained,
-                                                       quantization_config=bnb_config,
-                                                       torch_dtype=torch.bfloat16,
-                                                       )
+    model = T5ForConditionalGeneration.from_pretrained(args.from_pretrained)
 
     if args.parallelize:
         model.parallelize()
