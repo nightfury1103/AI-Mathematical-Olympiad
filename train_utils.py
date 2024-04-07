@@ -16,9 +16,10 @@
 import os
 import shutil
 import logging
+import torch 
 
 from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
-from transformers import T5ForConditionalGeneration
+from transformers import T5ForConditionalGeneration, BitsAndBytesConfig
 from transformers import DataCollatorForSeq2Seq
 from transformers.trainer_utils import set_seed
 
@@ -32,7 +33,17 @@ def get_config_dir(args):
 def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics):
     set_seed(run)
 
-    model = T5ForConditionalGeneration.from_pretrained(args.from_pretrained)
+    bnb_config = BitsAndBytesConfig(  
+        load_in_4bit= True,
+        bnb_4bit_quant_type= "nf4",
+        bnb_4bit_compute_dtype= torch.bfloat16,
+        bnb_4bit_use_double_quant= False,
+    )
+
+    model = T5ForConditionalGeneration.from_pretrained(args.from_pretrained,
+                                                       quantization_config=bnb_config,
+                                                       torch_dtype=torch.bfloat16,
+                                                       )
 
     if args.parallelize:
         model.parallelize()
